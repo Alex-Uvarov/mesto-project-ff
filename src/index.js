@@ -1,11 +1,10 @@
 import './pages/index.css';
 import { initialCards } from './scripts/initialCards';
-import { cardCreating, cardDeleteFunction, cardLiking } from './scripts/cards';
-import { openModal, closeModal,  imageOpening} from './scripts/modal';
+import { createCard, deleteCard, likeCard } from './scripts/cards';
+import { openModal, closeModal} from './scripts/modal';
 
 // Выбор элементов
-const cardTemplate = document.querySelector(`#card-template`).content;
-const placesList = document.querySelector(`.places__list`);
+const cardsContainer = document.querySelector(`.places__list`);
 const profileEditButton = document.querySelector('.profile__edit-button');
 const profileTitle = document.querySelector('.profile__title');
 const profileEditForm = document.forms['edit-profile'];
@@ -14,53 +13,64 @@ const newCardButton = document.querySelector('.profile__add-button');
 const newCardForm = document.forms['new-place'];
 const popupNewCard = document.querySelector('.popup_type_new-card');
 const popupEdit = document.querySelector('.popup_type_edit');
+const imagePopup = document.querySelector('.popup_type_image');
+const imageinPopup = imagePopup.querySelector('.popup__image');
+const imagePopupCaption = imagePopup.querySelector('.popup__caption');
 
-// DOM узлы
-export const cardElement = cardTemplate.querySelector(`.card`).cloneNode(true);
 
-
-// Вывести карточки на страницу
+// Вывести начальные карточки на страницу
 initialCards.forEach(function (item) {
-    placesList.append(cardCreating(item, cardDeleteFunction, cardLiking, imageOpening));
+    cardsContainer.append(createCard(item, deleteCard, likeCard, openImage));
 })
 
+// Открытие модального окна с картинкой
+function openImage(link, name) {
+    imageinPopup.src = link;
+    imageinPopup.alt = name;
+    imagePopupCaption.textContent = name;
+    openModal(imagePopup);
+}
+
+// Вешаем слушатель события клика на кнопку изменения профиля
 profileEditButton.addEventListener('click', () => {
 
     profileEditForm.name.value = profileTitle.textContent;
     profileEditForm.description.value = profileDescription.textContent;
 
     openModal(popupEdit);
-
-    profileEditForm.addEventListener ('submit', handleFormSubmit);
 })
 
-newCardButton.addEventListener('click', () => {
-    openModal(popupNewCard);
-
-    newCardForm.addEventListener ('submit', newCardFormSubmit);
-})
-
-function handleFormSubmit(evt) {
+// Обработчик события отправки формы измения профиля
+function submitProfileEditForm(evt) {
     evt.preventDefault();
     profileTitle.textContent = profileEditForm.name.value;
     profileDescription.textContent = profileEditForm.description.value;
-    const openedPopup = document.querySelector('.popup_is-opened');
-    closeModal(openedPopup);
+    closeModal(popupEdit);
 }
 
-function newCardFormSubmit(evt) {
+// Вешаем события отправки формы изменения профиля
+profileEditForm.addEventListener ('submit', submitProfileEditForm);
+
+// Вешаем слушатель события клика на кнопку добавления новой карточки
+newCardButton.addEventListener('click', () => {
+    openModal(popupNewCard);
+})
+
+//Обработчик события отправки формы добавления новой карточки
+function submitNewCardForm(evt) {
     evt.preventDefault();
 
     const data = {
         name: newCardForm['place-name'].value,
         link: newCardForm.link.value,
-        altText: newCardForm['place-name'].value
     }; 
 
-    placesList.prepend(cardCreating(data, cardDeleteFunction, cardLiking, imageOpening));
+    cardsContainer.prepend(createCard(data, deleteCard, likeCard, openImage));
 
-    const openedPopup = document.querySelector('.popup_is-opened');
-    closeModal(openedPopup);
+    closeModal(popupNewCard);
 
     newCardForm.reset();
 }
+
+//Вечаем слушатель события отправки формы добавления новой карточки
+newCardForm.addEventListener ('submit', submitNewCardForm);
