@@ -31,7 +31,7 @@ const validationSettings = {
 }
 
 //Определеяем глобальную переменную с ID пользователя
-let userInfo;
+let userID;
 
 // Получаем данные из запросов
 Promise.all([getUserProfile(), getInitialCards()])
@@ -40,10 +40,10 @@ Promise.all([getUserProfile(), getInitialCards()])
         profileDescription.textContent = user.about;
         profileAvatar.style['background-image'] = `url('${user.avatar}')`;
 
-        userInfo = user;
+        userID = user._id;
 
         cards.forEach((card) => {
-            cardsContainer.append(createCard(card, deleteCard, likeCard, openImage, userInfo._id, card._id));
+            cardsContainer.append(createCard(card, deleteCard, likeCard, openImage, userID, card._id));
         })
     })
     .catch((err) => console.log(`Ошибка: ${err}`));
@@ -82,9 +82,7 @@ function submitProfileEditForm(evt) {
     };
 
     updateUserProfile(userProfileInfo)
-        .then(user => {
-            user.name = userProfileInfo.name;
-            user.about =  userProfileInfo.about;
+        .then(() => {
 
             profileTitle.textContent = userProfileInfo.name;
             profileDescription.textContent = userProfileInfo.about;
@@ -128,11 +126,11 @@ function submitNewCardForm(evt) {
                 likes: card.likes,
                 cardID: card._id,
                 owner: {
-                _id: userInfo._id,
+                _id: userID,
             }
         }   
             //Добавляем карточку на страницу
-            cardsContainer.prepend(createCard(data, deleteCard, likeCard, openImage, userInfo._id, data.cardID));
+            cardsContainer.prepend(createCard(data, deleteCard, likeCard, openImage, userID, data.cardID));
 
             //Закрываем модальное окно
             closeModal(popupNewCard);
@@ -152,10 +150,7 @@ function submitNewCardForm(evt) {
 newCardForm.addEventListener ('submit', submitNewCardForm);
 
 //Вешаем слушатель события клика по аватару
-editAvatarButton.addEventListener('click', () => {
-    editAvatarForm.link.value = userInfo.avatar;
-    openModal(popupEditAvatar);
-})
+editAvatarButton.addEventListener('click',() => openModal(popupEditAvatar))
 
 //Обработчик события клика на кнопку отправки формы изменения аватара
 function submitNewAvatarForm (evt) {
@@ -172,7 +167,6 @@ function submitNewAvatarForm (evt) {
     //Обновление аватара на сервере
     changeAvatarServer(avatar)
     .then((res) => {
-        res.avatar
         profileAvatar.style['background-image'] = `url('${res.avatar}')`;
         closeModal(popupEditAvatar);
     })
@@ -182,6 +176,7 @@ function submitNewAvatarForm (evt) {
         popupButton.disabled = false;
     })
 
+    editAvatarForm.reset();
     clearValidation(editAvatarForm, validationSettings);
 }
 

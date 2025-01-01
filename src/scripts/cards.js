@@ -1,4 +1,7 @@
 import { deleteCardFromServer, dislikeCardServer, likeCardServer } from "./api";
+import { closeModal, openModal } from "./modal";
+
+const deleteCardPopup = document.querySelector('.popup_type_delete-card');
 
 // Функция создания карточки
 export function createCard(data, deleteFunction, liking, imageOpeningFunction, userID, cardID) {
@@ -51,13 +54,31 @@ export function createCard(data, deleteFunction, liking, imageOpeningFunction, u
 // Функция удаления карточки
 export function deleteCard(card) {
   const cardID = card._id;
-  deleteCardFromServer(cardID)
-    .then(() => {
-      card.remove();
-    })
-    .catch((err) => {
-      console.log(`Ошибка: ${err}`);
-    });
+  openModal(deleteCardPopup);
+
+  const deleteCardFormSubmit = (evt) => {
+    evt.preventDefault();
+
+    const popupButton = deleteCardPopup.querySelector('.popup__button');
+    popupButton.textContent = 'Удаление...'
+    popupButton.disabled = true;
+
+    deleteCardFromServer(cardID)
+      .then(() => {
+        card.remove();
+        closeModal(deleteCardPopup);
+      })
+      .catch((err) => {
+        console.log(`Ошибка: ${err}`);
+      })
+      .finally(() => {
+        popupButton.textContent = 'Да';
+        popupButton.disabled = false;
+      })
+  }
+
+  document.forms['delete-card'].addEventListener('submit', deleteCardFormSubmit)
+
 }
 
 // Функция добавления лайка на карточку
@@ -72,6 +93,9 @@ export function likeCard(card) {
       counter.textContent = Number(counter.textContent) + 1;
       counter.classList.add('likes_count_active');
     })
+    .catch((err) => {
+      console.log(`Ошибка: ${err}`);
+    })
   } else {
     dislikeCardServer(card._id)
     .then(() => {
@@ -83,5 +107,8 @@ export function likeCard(card) {
         counter.textContent = Number(counter.textContent) - 1;
       }
     })
+    .catch((err) => {
+      console.log(`Ошибка: ${err}`);
+    });
   }
 }
