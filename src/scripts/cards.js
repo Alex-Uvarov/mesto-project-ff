@@ -85,12 +85,11 @@ export function deleteCard(card) {
 export function likeCard(card) {
   const button = card.querySelector('.card__like-button');
   const counter = card.querySelector('.likes_count')
-  console.log(card._id)
   if (!button.classList.contains('card__like-button_is-active')) {
     likeCardServer(card._id)
-    .then(() => {
-      button.classList.add('card__like-button_is-active');
-      counter.textContent = Number(counter.textContent) + 1;
+    .then((res) => {
+      button.classList.toggle('card__like-button_is-active');
+      counter.textContent = res.likes.length;
       counter.classList.add('likes_count_active');
     })
     .catch((err) => {
@@ -98,14 +97,12 @@ export function likeCard(card) {
     })
   } else {
     dislikeCardServer(card._id)
-    .then(() => {
-      button.classList.remove('card__like-button_is-active');
-      if (Number(counter.textContent) - 1 === 0) {
+    .then((res) => {
+      button.classList.toggle('card__like-button_is-active');
+      if (res.likes.length === 0) {
         counter.classList.remove('likes_count_active')
-        counter.textContent = Number(counter.textContent) - 1;
-      } else {
-        counter.textContent = Number(counter.textContent) - 1;
       }
+      counter.textContent = res.likes.length;
     })
     .catch((err) => {
       console.log(`Ошибка: ${err}`);

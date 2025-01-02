@@ -82,10 +82,10 @@ function submitProfileEditForm(evt) {
     };
 
     updateUserProfile(userProfileInfo)
-        .then(() => {
+        .then((user) => {
 
-            profileTitle.textContent = userProfileInfo.name;
-            profileDescription.textContent = userProfileInfo.about;
+            profileTitle.textContent = user.name;
+            profileDescription.textContent = user.about;
 
             closeModal(popupEdit);
         })
