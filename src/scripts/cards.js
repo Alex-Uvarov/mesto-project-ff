@@ -1,9 +1,4 @@
-import { deleteCardFromServer, dislikeCardServer, likeCardServer } from "./api";
-import { closeModal, openModal } from "./modal";
-
-const deleteCardPopup = document.querySelector('.popup_type_delete-card');
-const deleteCardForm = document.forms['delete-card'];
-let cardForDelete;
+import { dislikeCardServer, likeCardServer } from "./api";
 
 // Функция создания карточки
 export function createCard(data, openDeletePopup, liking, imageOpeningFunction, userID) {
@@ -14,15 +9,15 @@ export function createCard(data, openDeletePopup, liking, imageOpeningFunction, 
   const cardTitle = cardElement.querySelector(`.card__title`);
   const cardLikesCounter = cardElement.querySelector('.likes_count');
 
-  cardElement._id = data.cardID;
-
   cardImage.src = data.link;
   cardImage.alt = data.name;
   cardTitle.textContent = data.name;
 
+  cardElement._id = data._id;
+
 // Открытие модального окна удаления карточки
   const deleteButton = cardElement.querySelector(`.card__delete-button`);
-  deleteButton.addEventListener(`click`, () => openDeletePopup(cardElement));
+  deleteButton.addEventListener(`click`, () => openDeletePopup (cardElement));
 
   if(userID !== data.owner._id) {
     deleteButton.classList.add("card__delete-button-hidden")
@@ -52,37 +47,6 @@ export function createCard(data, openDeletePopup, liking, imageOpeningFunction, 
 
   return cardElement;
 }
-
-//Обработчик открытия модального окна удаления карточки
-export function openDeletePopupFunction (card) {
-  cardForDelete = card;
-  openModal(deleteCardPopup);
-}
-
-//Обработчик удаления карточки ч/з модальное окно
-function deleteCardFormSubmit(evt) {
-  evt.preventDefault();
-
-  const popupButton = deleteCardPopup.querySelector('.popup__button');
-  popupButton.textContent = 'Удаление...'
-  popupButton.disabled = true;
-
-  deleteCardFromServer(cardForDelete._id)
-    .then(() => {
-      cardForDelete.remove();
-      closeModal(deleteCardPopup);
-    })
-    .catch((err) => {
-      console.log(`Ошибка: ${err}`);
-    })
-    .finally(() => {
-      popupButton.textContent = 'Да';
-      popupButton.disabled = false;
-    })
-}
-
-//Вешаем слушатель события отправки формы удаления карточки
-deleteCardForm.addEventListener('submit', deleteCardFormSubmit);
 
 // Функция добавления лайка на карточку
 export function likeCard(card) {

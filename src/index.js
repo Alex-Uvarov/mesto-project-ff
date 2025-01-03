@@ -1,8 +1,8 @@
 import './pages/index.css';
-import { createCard, likeCard, openDeletePopupFunction } from './scripts/cards';
+import { createCard, likeCard } from './scripts/cards';
 import { openModal, closeModal} from './scripts/modal';
 import { enableValidation, clearValidation } from './scripts/validation';
-import { getInitialCards, getUserProfile, updateUserProfile, addNewCardToServer, changeAvatarServer} from './scripts/api';
+import { getInitialCards, getUserProfile, updateUserProfile, addNewCardToServer, changeAvatarServer, deleteCardFromServer} from './scripts/api';
 
 // Выбор элементов
 const cardsContainer = document.querySelector(`.places__list`);
@@ -21,6 +21,8 @@ const editAvatarForm = document.forms['avatar'];
 const imagePopup = document.querySelector('.popup_type_image');
 const imageinPopup = imagePopup.querySelector('.popup__image');
 const imagePopupCaption = imagePopup.querySelector('.popup__caption');
+const deleteCardPopup = document.querySelector('.popup_type_delete-card');
+const deleteCardForm = document.forms['delete-card'];
 const validationSettings = {
     formSelector: '.popup__form',
     inputSelector: '.popup__input',
@@ -30,8 +32,9 @@ const validationSettings = {
     errorClass: 'popup__error_visible'
 }
 
-//Определеяем глобальную переменную с ID пользователя
+//Определеяем глобальные переменные с ID пользователя и карточкой для удаления
 let userID;
+let cardForDelete;
 
 // Получаем данные из запросов
 Promise.all([getUserProfile(), getInitialCards()])
@@ -119,18 +122,8 @@ function submitNewCardForm(evt) {
     })
         .then(card => {
 
-            //Определение начальных данных карточки
-            const data = {
-                name: card.name,
-                link: card.link,
-                likes: card.likes,
-                cardID: card._id,
-                owner: {
-                _id: userID,
-            }
-        }   
             //Добавляем карточку на страницу
-            cardsContainer.prepend(createCard(data, openDeletePopupFunction, likeCard, openImage, userID));
+            cardsContainer.prepend(createCard(card, openDeletePopupFunction, likeCard, openImage, userID));
 
             //Закрываем модальное окно
             closeModal(popupNewCard);
@@ -182,6 +175,39 @@ function submitNewAvatarForm (evt) {
 
 //Вешаем слушатель события отправки формы обновления аватара
 editAvatarForm.addEventListener ('submit', submitNewAvatarForm);
+
+//Обработчик открытия модального окна для удаления карточки
+function openDeletePopupFunction (card) {
+    
+    cardForDelete = card;
+
+    openModal(deleteCardPopup);
+  }
+
+//Обработчик удаления карточки ч/з модальное окно
+function deleteCardFormSubmit(evt) {
+  evt.preventDefault();
+
+  const popupButton = deleteCardPopup.querySelector('.popup__button');
+  popupButton.textContent = 'Удаление...'
+  popupButton.disabled = true;
+
+  deleteCardFromServer(cardForDelete._id)
+    .then(() => {
+      cardForDelete.remove();
+      closeModal(deleteCardPopup);
+    })
+    .catch((err) => {
+      console.log(`Ошибка: ${err}`);
+    })
+    .finally(() => {
+      popupButton.textContent = 'Да';
+      popupButton.disabled = false;
+    })
+}
+
+//Вешаем слушатель события отправки формы удаления карточки
+deleteCardForm.addEventListener('submit', deleteCardFormSubmit);
 
 //Включаем валидацию форм
 enableValidation(validationSettings);
