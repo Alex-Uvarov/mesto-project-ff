@@ -56,10 +56,6 @@ export function createCard(data, openDeletePopup, liking, imageOpeningFunction, 
 //Обработчик открытия модального окна удаления карточки
 export function openDeletePopupFunction (card) {
   cardForDelete = card;
-
-  console.log(cardForDelete);
-  console.log(cardForDelete._id);
-
   openModal(deleteCardPopup);
 }
 
