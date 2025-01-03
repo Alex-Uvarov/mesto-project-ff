@@ -1,5 +1,5 @@
 import './pages/index.css';
-import { createCard, deleteCard, likeCard } from './scripts/cards';
+import { createCard, likeCard, openDeletePopupFunction } from './scripts/cards';
 import { openModal, closeModal} from './scripts/modal';
 import { enableValidation, clearValidation } from './scripts/validation';
 import { getInitialCards, getUserProfile, updateUserProfile, addNewCardToServer, changeAvatarServer} from './scripts/api';
@@ -43,7 +43,7 @@ Promise.all([getUserProfile(), getInitialCards()])
         userID = user._id;
 
         cards.forEach((card) => {
-            cardsContainer.append(createCard(card, deleteCard, likeCard, openImage, userID, card._id));
+            cardsContainer.append(createCard(card, openDeletePopupFunction, likeCard, openImage, userID));
         })
     })
     .catch((err) => console.log(`Ошибка: ${err}`));
@@ -130,7 +130,7 @@ function submitNewCardForm(evt) {
             }
         }   
             //Добавляем карточку на страницу
-            cardsContainer.prepend(createCard(data, deleteCard, likeCard, openImage, userID, data.cardID));
+            cardsContainer.prepend(createCard(data, openDeletePopupFunction, likeCard, openImage, userID));
 
             //Закрываем модальное окно
             closeModal(popupNewCard);

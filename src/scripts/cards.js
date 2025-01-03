@@ -2,9 +2,11 @@ import { deleteCardFromServer, dislikeCardServer, likeCardServer } from "./api";
 import { closeModal, openModal } from "./modal";
 
 const deleteCardPopup = document.querySelector('.popup_type_delete-card');
+const deleteCardForm = document.forms['delete-card'];
+let cardForDelete;
 
 // Функция создания карточки
-export function createCard(data, deleteFunction, liking, imageOpeningFunction, userID, cardID) {
+export function createCard(data, openDeletePopup, liking, imageOpeningFunction, userID) {
   
   const cardTemplate = document.querySelector(`#card-template`).content;
   const cardElement = cardTemplate.querySelector(`.card`).cloneNode(true);
@@ -12,15 +14,15 @@ export function createCard(data, deleteFunction, liking, imageOpeningFunction, u
   const cardTitle = cardElement.querySelector(`.card__title`);
   const cardLikesCounter = cardElement.querySelector('.likes_count');
 
-  cardElement._id = cardID;
+  cardElement._id = data.cardID;
 
   cardImage.src = data.link;
   cardImage.alt = data.name;
   cardTitle.textContent = data.name;
 
-// Удаление крточки
+// Открытие модального окна удаления карточки
   const deleteButton = cardElement.querySelector(`.card__delete-button`);
-  deleteButton.addEventListener(`click`, () => deleteFunction(cardElement));
+  deleteButton.addEventListener(`click`, () => openDeletePopup(cardElement));
 
   if(userID !== data.owner._id) {
     deleteButton.classList.add("card__delete-button-hidden")
@@ -51,35 +53,40 @@ export function createCard(data, deleteFunction, liking, imageOpeningFunction, u
   return cardElement;
 }
 
-// Функция удаления карточки
-export function deleteCard(card) {
-  const cardID = card._id;
+//Обработчик открытия модального окна удаления карточки
+export function openDeletePopupFunction (card) {
+  cardForDelete = card;
+
+  console.log(cardForDelete);
+  console.log(cardForDelete._id);
+
   openModal(deleteCardPopup);
-
-  const deleteCardFormSubmit = (evt) => {
-    evt.preventDefault();
-
-    const popupButton = deleteCardPopup.querySelector('.popup__button');
-    popupButton.textContent = 'Удаление...'
-    popupButton.disabled = true;
-
-    deleteCardFromServer(cardID)
-      .then(() => {
-        card.remove();
-        closeModal(deleteCardPopup);
-      })
-      .catch((err) => {
-        console.log(`Ошибка: ${err}`);
-      })
-      .finally(() => {
-        popupButton.textContent = 'Да';
-        popupButton.disabled = false;
-      })
-  }
-
-  document.forms['delete-card'].addEventListener('submit', deleteCardFormSubmit)
-
 }
+
+//Обработчик удаления карточки ч/з модальное окно
+function deleteCardFormSubmit(evt) {
+  evt.preventDefault();
+
+  const popupButton = deleteCardPopup.querySelector('.popup__button');
+  popupButton.textContent = 'Удаление...'
+  popupButton.disabled = true;
+
+  deleteCardFromServer(cardForDelete._id)
+    .then(() => {
+      cardForDelete.remove();
+      closeModal(deleteCardPopup);
+    })
+    .catch((err) => {
+      console.log(`Ошибка: ${err}`);
+    })
+    .finally(() => {
+      popupButton.textContent = 'Да';
+      popupButton.disabled = false;
+    })
+}
+
+//Вешаем слушатель события отправки формы удаления карточки
+deleteCardForm.addEventListener('submit', deleteCardFormSubmit);
 
 // Функция добавления лайка на карточку
 export function likeCard(card) {
